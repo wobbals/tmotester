@@ -7,7 +7,7 @@ for the current externally reflected IP address, sets up tcpdump on this target
 address, and establishes a sequence of sockets.
 
 If all works well, you'll see all sockets report open, like this:
-https://gist.github.com/wobbals/61232127f3a84e6fafffa164c5613077
+https://gist.github.com/wobbals/7b808682562c9bb8129e8bfd853f605b
 
 If not, you might see connection timeouts, like this:
 https://gist.github.com/tomnguyenn/15cea6a1cdb53d7a082bed1e543efc9e#file-gistfile1-txt-L93
