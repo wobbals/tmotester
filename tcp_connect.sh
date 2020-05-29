@@ -1,6 +1,7 @@
 #!/bin/bash
 
-ADDR=$(dig +short microsoft.com | tail -1)
+TARGET_HOST=microsoft.com
+ADDR=$(dig +short ${TARGET_HOST} | tail -1)
 echo "Src reflected address $(curl -s ipv4.icanhazip.com)"
 echo "Target address ${ADDR}"
 tcpdump -n "port 443 and dst ${ADDR}" &
