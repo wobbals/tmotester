@@ -5,6 +5,11 @@ const stun = require('stun');
 
 const resolver = new Resolver();
 
+const NUM_SOCKETS_PER_TEST = 30;
+const TIMEOUTS = [1, 10, 30, 60];
+const PORTS = [80, 443];
+const HOSTS = ['microsoft.com', 'baidu.com'];
+
 const STUN_SERVERS = [
   'stun.l.google.com:19302',
   'stun1.l.google.com:19302',
@@ -12,7 +17,6 @@ const STUN_SERVERS = [
   'stun3.l.google.com:19302',
   'stun4.l.google.com:19302',
 ];
-const NUM_SOCKETS_PER_TEST = 30;
 
 function reflectIP() {
   const randomIndex = Math.floor(Math.random() * STUN_SERVERS.length);
@@ -83,24 +87,19 @@ function runSocketTest(address, port, connectTimeoutMillis) {
 async function main() {
   reflectIP();
   await new Promise((resolve) => setTimeout(resolve, 3000));
-
-
-  const timeouts = [1, 10, 30, 60];
-  const ports = [80, 443];
-  const hosts = ['microsoft.com', 'baidu.com'];
-  for (let i = 0; i < hosts.length; i++) {
-    const host = hosts[i];
+  for (let i = 0; i < HOSTS.length; i++) {
+    const host = HOSTS[i];
     const startTime = new Date();
     const targetAddresses = await resolver.resolve4(host);
     assert(targetAddresses.length > 0);
     const targetAddress = targetAddresses[0];
     const lookupTime = new Date();
     const lookupDuration = lookupTime.getTime() - startTime.getTime();
-    for (let j = 0; j < ports.length; j++) {
-      const port = ports[j];
-      for (let l = 0; l < timeouts.length; l++) {
+    for (let j = 0; j < PORTS.length; j++) {
+      const port = PORTS[j];
+      for (let l = 0; l < TIMEOUTS.length; l++) {
         try {
-          const timeout = timeouts[l];
+          const timeout = TIMEOUTS[l];
           console.log(
             `begin test: target host ${host}: ${targetAddress}:${port}, `
             + `lookup time=${lookupDuration}ms, `
