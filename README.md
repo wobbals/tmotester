@@ -38,5 +38,9 @@ docker build -t wobbals/tmotester:latest .
 ## Step 2: Run the test script
 
 ```
-docker run -it wobbals/tmotester:latest tcp_connect.sh
+docker run -it wobbals/tmotester:latest bash
+# From the shell in the Docker guest:
+node socket_tester.js | tee sockettest.log
+
+# After process exits, *.pcap and *.log files can be copied out for analysis
 ```

@@ -1,4 +1,9 @@
+/* eslint-disable camelcase */
+/* eslint-disable no-console */
+/* eslint-disable no-await-in-loop */
+/* eslint-disable comma-dangle */
 const assert = require('assert');
+const child_process = require('child_process');
 const { Resolver } = require('dns').promises;
 const net = require('net');
 const stun = require('stun');
@@ -18,6 +23,9 @@ const STUN_SERVERS = [
   'stun4.l.google.com:19302',
 ];
 
+const TEST_TIME = new Date().getTime();
+console.log(`Test time is ${TEST_TIME}`);
+
 function reflectIP() {
   const randomIndex = Math.floor(Math.random() * STUN_SERVERS.length);
   const server = STUN_SERVERS[randomIndex];
@@ -30,6 +38,15 @@ function reflectIP() {
         `Current reflected address=${result.getXorAddress().address}`,
       );
     }
+  });
+}
+
+function startTCPDump(dstaddr, dstport, timeout) {
+  const outfile = `tcpdump-${dstaddr}:${dstport}-${timeout}s-${TEST_TIME}.pcap`;
+  const cmd = `tcpdump -n "port ${dstport} and dst ${dstaddr}" -w ${outfile}`;
+  console.log(`tcpdump pcap output=${outfile}`);
+  return child_process.spawn('/bin/sh', ['-c', cmd], {
+    detached: true,
   });
 }
 
@@ -86,8 +103,7 @@ function runSocketTest(address, port, connectTimeoutMillis) {
 
 async function main() {
   reflectIP();
-  await new Promise((resolve) => setTimeout(resolve, 3000));
-  for (let i = 0; i < HOSTS.length; i++) {
+  for (let i = 0; i < HOSTS.length; i += 1) {
     const host = HOSTS[i];
     const startTime = new Date();
     const targetAddresses = await resolver.resolve4(host);
@@ -95,18 +111,22 @@ async function main() {
     const targetAddress = targetAddresses[0];
     const lookupTime = new Date();
     const lookupDuration = lookupTime.getTime() - startTime.getTime();
-    for (let j = 0; j < PORTS.length; j++) {
+    for (let j = 0; j < PORTS.length; j += 1) {
       const port = PORTS[j];
-      for (let l = 0; l < TIMEOUTS.length; l++) {
+      for (let l = 0; l < TIMEOUTS.length; l += 1) {
         try {
           const timeout = TIMEOUTS[l];
+          const tcpdump = startTCPDump(targetAddress, port, timeout);
+          // wait for tcpdump to bind to nic
+          await new Promise(resolve => setTimeout(resolve, 5000));
+
           console.log(
             `begin test: target host ${host}: ${targetAddress}:${port}, `
             + `lookup time=${lookupDuration}ms, `
             + `timeout=${timeout}s`
           );
           const promises = [];
-          for (let m = 0; m < NUM_SOCKETS_PER_TEST; m++) {
+          for (let m = 0; m < NUM_SOCKETS_PER_TEST; m += 1) {
             promises.push(runSocketTest(
               targetAddress, port, timeout * 1000,
             ));
@@ -139,12 +159,13 @@ async function main() {
             + `maxConnectTime=${maxConnectTime}ms, `
             + `avgConnectTime=${avgConnectTime.toFixed(2)}ms`
           );
+          await new Promise(resolve => setTimeout(resolve, 5000));
+          process.kill(-tcpdump.pid);
         } catch (e) {
           console.log(e.message);
         }
-        await new Promise((resolve) => { setTimeout(resolve, 1000) });
+        await new Promise(resolve => setTimeout(resolve, 1000));
       }
-
     }
   }
 

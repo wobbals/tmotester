@@ -1,0 +1,14 @@
+{
+  "name": "tmotester",
+  "version": "1.0.0",
+  "description": "Linux docker guest will establish a handful of TCP connections to the endpoint specified in line 3 of `tcp_connect.sh`. Performs a single DNS lookup, checks for the current externally reflected IP address, sets up tcpdump on this target address, and establishes a sequence of sockets.",
+  "main": "socket_tester.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "stun": "^2.1.0"
+  }
+}
